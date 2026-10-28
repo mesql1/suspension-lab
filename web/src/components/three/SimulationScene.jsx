@@ -1,18 +1,21 @@
 import { Suspense } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
+import * as THREE from 'three'
 import { RollingRoad } from './RollingRoad'
 import { Vehicle } from './Vehicle'
 
 function Simulation({ engine }) {
   return (
     <>
-      <color attach="background" args={['#071018']} />
-      <fog attach="fog" args={['#071018', 12, 42]} />
-      <ambientLight intensity={0.65} />
-      <hemisphereLight args={['#b9eff3', '#132028', 1.15]} />
-      <directionalLight position={[6, 10, -5]} intensity={2.2} color="#dffcff" castShadow shadow-mapSize={[1024, 1024]} />
-      <pointLight position={[-4, 3, -4]} intensity={10} color="#1d7c91" />
+      <color attach="background" args={['#090a0b']} />
+      <fog attach="fog" args={['#090a0b', 13, 44]} />
+      <ambientLight intensity={0.52} color="#ffffff" />
+      <hemisphereLight args={['#f2f2f2', '#1a1a1a', 1.05]} />
+      <directionalLight position={[6, 10, -5]} intensity={3.1} color="#ffffff" castShadow shadow-mapSize={[2048, 2048]} />
+      <directionalLight position={[-5, 4, -1]} intensity={1.15} color="#cfd2d5" />
+      <pointLight position={[-3, 3, 4]} intensity={8} color="#ffffff" distance={18} />
+      <pointLight position={[3, 2, -4]} intensity={5} color="#d9d9d9" distance={14} />
       <RollingRoad engine={engine} />
       <Suspense fallback={null}>
         <Vehicle engine={engine} />
@@ -29,6 +32,10 @@ export function SimulationScene({ engine }) {
       dpr={[1, 1.6]}
       camera={{ position: [5.5, 3.8, -6.8], fov: 42 }}
       gl={{ antialias: true, powerPreference: 'high-performance' }}
+      onCreated={({ gl }) => {
+        gl.toneMapping = THREE.ACESFilmicToneMapping
+        gl.toneMappingExposure = 1.18
+      }}
     >
       <Simulation engine={engine} />
     </Canvas>

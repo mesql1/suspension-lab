@@ -19,17 +19,17 @@ export function PoleZeroPlot({ m, c, k }) {
     const yFor = (im) => rect.y + rect.height * (0.5 - 0.46 * im / maxIm)
     const axisX = xFor(0)
     const axisY = yFor(0)
-    ctx.strokeStyle = 'rgba(151,177,190,.4)'
+    ctx.strokeStyle = 'rgba(210,210,210,.35)'
     ctx.beginPath(); ctx.moveTo(rect.x, axisY); ctx.lineTo(rect.x + rect.width, axisY); ctx.stroke()
     ctx.beginPath(); ctx.moveTo(axisX, rect.y); ctx.lineTo(axisX, rect.y + rect.height); ctx.stroke()
 
-    ctx.strokeStyle = '#ff7a71'
+    ctx.strokeStyle = '#f2f2f2'
     ctx.lineWidth = 2
     values.poles.forEach((pole) => {
       const x = xFor(pole.re); const y = yFor(pole.im)
       ctx.beginPath(); ctx.moveTo(x - 5, y - 5); ctx.lineTo(x + 5, y + 5); ctx.moveTo(x + 5, y - 5); ctx.lineTo(x - 5, y + 5); ctx.stroke()
     })
-    ctx.strokeStyle = '#5ee7f0'
+    ctx.strokeStyle = '#8d8d8d'
     values.zeros.forEach((zero) => {
       ctx.beginPath(); ctx.arc(xFor(zero.re), yFor(zero.im), 5, 0, Math.PI * 2); ctx.stroke()
     })
@@ -37,7 +37,7 @@ export function PoleZeroPlot({ m, c, k }) {
     label(ctx, 'Im(s)', axisX - 5, rect.y + 9, 'right')
     label(ctx, `${(-maxRe).toFixed(0)}`, rect.x, axisY + 14, 'left')
     label(ctx, '0', axisX, axisY + 14, 'center')
-    label(ctx, `ζ ${(c / (2 * Math.sqrt(k * m))).toFixed(2)}`, rect.x + 3, rect.y + 12, 'left', '#82f6b4')
+    label(ctx, `ζ ${(c / (2 * Math.sqrt(k * m))).toFixed(2)}`, rect.x + 3, rect.y + 12, 'left', '#d8d8d8')
   }, [values, m, c, k, ref, size])
 
   return (

@@ -9,7 +9,7 @@ export function setupCanvas(canvas, size) {
 
 export function drawGrid(ctx, rect, xDivisions = 8, yDivisions = 4) {
   ctx.save()
-  ctx.strokeStyle = 'rgba(151, 177, 190, 0.10)'
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)'
   ctx.lineWidth = 1
   for (let i = 0; i <= xDivisions; i += 1) {
     const x = rect.x + rect.width * i / xDivisions
@@ -22,7 +22,7 @@ export function drawGrid(ctx, rect, xDivisions = 8, yDivisions = 4) {
   ctx.restore()
 }
 
-export function label(ctx, text, x, y, align = 'left', color = '#78909c') {
+export function label(ctx, text, x, y, align = 'left', color = '#858585') {
   ctx.fillStyle = color
   ctx.font = '10px JetBrains Mono, monospace'
   ctx.textAlign = align

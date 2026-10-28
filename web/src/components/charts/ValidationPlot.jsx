@@ -26,12 +26,12 @@ export function ValidationPlot({ controller, status }) {
           rect.y + rect.height * (0.5 - errors[i] / (2 * max)),
         ])
       }
-      trace(ctx, points, status.mode !== 'simulation' ? '#ff7a71' : '#526b76', 1.35)
+      trace(ctx, points, status.mode !== 'simulation' ? '#d8d8d8' : '#666666', 1.35)
       label(ctx, `+${(max * 1e6).toFixed(1)} µm`, rect.x - 5, rect.y + 5, 'right')
       label(ctx, '0', rect.x - 5, rect.y + rect.height / 2 + 3, 'right')
       label(ctx, `-${(max * 1e6).toFixed(1)} µm`, rect.x - 5, rect.y + rect.height, 'right')
-      label(ctx, 'y_target − y_ref', rect.x + 4, rect.y + 12, 'left', '#91a9b6')
-      if (status.mode === 'simulation') label(ctx, 'Selecione um target para iniciar a validação', rect.x + rect.width / 2, rect.y + rect.height / 2 - 7, 'center', '#607985')
+      label(ctx, 'y_target − y_ref', rect.x + 4, rect.y + 12, 'left', '#9a9a9a')
+      if (status.mode === 'simulation') label(ctx, 'Selecione um target para iniciar a validação', rect.x + rect.width / 2, rect.y + rect.height / 2 - 7, 'center', '#777777')
     }
     frame = requestAnimationFrame(draw)
     return () => cancelAnimationFrame(frame)

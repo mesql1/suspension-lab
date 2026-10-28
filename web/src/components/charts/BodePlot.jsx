@@ -40,13 +40,13 @@ export function BodePlot({ m, c, k, fs }) {
       continuousPhase.push([x, phaseFor(r.continuousPhase[i])])
       discretePhase.push([x, phaseFor(r.discretePhase[i])])
     }
-    trace(ctx, continuousMag, '#5ee7f0', 1.8)
-    trace(ctx, discreteMag, '#ffb44a', 1.25, [4, 3])
-    trace(ctx, continuousPhase, '#5ee7f0', 1.8)
-    trace(ctx, discretePhase, '#ffb44a', 1.25, [4, 3])
+    trace(ctx, continuousMag, '#f2f2f2', 1.8)
+    trace(ctx, discreteMag, '#8c8c8c', 1.25, [4, 3])
+    trace(ctx, continuousPhase, '#f2f2f2', 1.8)
+    trace(ctx, discretePhase, '#8c8c8c', 1.25, [4, 3])
 
     const resonanceX = xFor(data.fn)
-    ctx.strokeStyle = 'rgba(130,246,180,.65)'
+    ctx.strokeStyle = 'rgba(210,210,210,.55)'
     ctx.setLineDash([2, 3])
     ;[magRect, phaseRect].forEach((rect) => {
       ctx.beginPath(); ctx.moveTo(resonanceX, rect.y); ctx.lineTo(resonanceX, rect.y + rect.height); ctx.stroke()
@@ -54,17 +54,17 @@ export function BodePlot({ m, c, k, fs }) {
     ctx.setLineDash([])
     if (data.cutoff) {
       const cutoffX = xFor(data.cutoff)
-      ctx.fillStyle = '#ffb44a'
+      ctx.fillStyle = '#a8a8a8'
       ctx.beginPath(); ctx.arc(cutoffX, magFor(-3), 3, 0, Math.PI * 2); ctx.fill()
-      label(ctx, `fc ${data.cutoff.toFixed(1)} Hz`, cutoffX - 4, magFor(-3) - 6, 'right', '#ffb44a')
+      label(ctx, `fc ${data.cutoff.toFixed(1)} Hz`, cutoffX - 4, magFor(-3) - 6, 'right', '#a8a8a8')
     }
 
     ;[-60, -40, -20, 0, 20].forEach((v) => label(ctx, `${v}`, pad.left - 6, magFor(v) + 3, 'right'))
     ;[-120, -90, -60, -30, 0, 30].filter((_, i) => i % 2 === 0).forEach((v) => label(ctx, `${v}°`, pad.left - 6, phaseFor(v) + 3, 'right'))
     ;[0.1, 1, 10, 100].forEach((f) => label(ctx, `${f}`, xFor(f), size.height - 5, 'center'))
-    label(ctx, 'MAG · dB', magRect.x + 4, magRect.y + 11, 'left', '#91a9b6')
-    label(ctx, 'FASE', phaseRect.x + 4, phaseRect.y + 11, 'left', '#91a9b6')
-    label(ctx, `fn ${data.fn.toFixed(2)} Hz`, Math.min(resonanceX + 4, size.width - 75), magRect.y + 12, 'left', '#82f6b4')
+    label(ctx, 'MAG · dB', magRect.x + 4, magRect.y + 11, 'left', '#9a9a9a')
+    label(ctx, 'FASE', phaseRect.x + 4, phaseRect.y + 11, 'left', '#9a9a9a')
+    label(ctx, `fn ${data.fn.toFixed(2)} Hz`, Math.min(resonanceX + 4, size.width - 75), magRect.y + 12, 'left', '#d8d8d8')
   }, [data, ref, size])
 
   return (

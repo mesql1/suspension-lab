@@ -27,8 +27,8 @@ export function Oscilloscope({ engine }) {
         xPoints.push([px, rect.y + rect.height * (0.5 - samples.x[i] / (2 * max))])
         yPoints.push([px, rect.y + rect.height * (0.5 - samples.y[i] / (2 * max))])
       }
-      trace(ctx, xPoints, '#ffb44a', 1.25)
-      trace(ctx, yPoints, '#5ee7f0', 1.8)
+      trace(ctx, xPoints, '#8f8f8f', 1.25)
+      trace(ctx, yPoints, '#f2f2f2', 1.8)
       label(ctx, `+${(max * 100).toFixed(1)} cm`, rect.x - 5, rect.y + 5, 'right')
       label(ctx, '0', rect.x - 5, rect.y + rect.height / 2 + 3, 'right')
       label(ctx, `-${(max * 100).toFixed(1)} cm`, rect.x - 5, rect.y + rect.height, 'right')

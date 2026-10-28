@@ -5,14 +5,14 @@
 :root {
   color-scheme: dark;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #071018;
-  color: #dcebf0;
+  background: #0a0a0a;
+  color: #e6e6e6;
   font-synthesis: none;
-  --cyan: #5ee7f0;
-  --amber: #ffb44a;
-  --mint: #82f6b4;
-  --muted: #6f8793;
-  --border: rgba(134, 173, 189, 0.13);
+  --cyan: #f2f2f2;
+  --amber: #999999;
+  --mint: #d6d6d6;
+  --muted: #858585;
+  --border: rgba(255, 255, 255, 0.11);
 }
 
 * { box-sizing: border-box; }
@@ -447,4 +447,110 @@ body {
   .signal-controls { grid-template-columns: 1fr; }
   .hil-status-body { grid-template-columns: 1fr; }
   .app-footer { flex-direction: column; line-height: 1.5; }
+}
+
+/* Monochrome, rectilinear visual system. */
+.dashboard-shell { background: #101010; }
+.dashboard-header { background: #090909; border-bottom-color: rgba(255,255,255,.1); }
+.nav-rail { background: #070707; border-right-color: rgba(255,255,255,.09); }
+.visual-side { background: #0a0a0a; box-shadow: none; }
+.mode-card,
+.panel { background: #181818; box-shadow: none; }
+.scene-footer { background: #090909; }
+.metric-grid,
+.preset-row button,
+.mode-card .mode-tabs button { background: #121212; }
+.compass-panel .panel-body { background: #151515; }
+
+.app-shell,
+.visual-side,
+.mode-card,
+.panel,
+.rail-logo,
+.nav-rail a:not(.rail-logo),
+.target-chip,
+.sample-badge,
+.live-readout > div,
+.equation-card,
+.mode-card .mode-tabs button,
+.disconnect-button,
+.metric-grid,
+.preset-row button,
+.hil-mode-pill,
+.live-pill,
+.bin-pill,
+.validation-summary > div {
+  border-radius: 0 !important;
+}
+
+.brand-mark { border-radius: 0; border-color: rgba(255,255,255,.35); box-shadow: none; }
+.brand-mark::before,
+.brand-mark::after,
+.brand-mark span { background: #f2f2f2; }
+.rail-logo { background: #f1f1f1; color: #090909; }
+.nav-rail a:not(.rail-logo):hover,
+.nav-rail a.active { color: #ffffff; background: #242424; }
+.nav-rail a.active { box-shadow: inset 3px 0 #f2f2f2; }
+
+.target-chip.virtual i,
+.target-chip.hil i,
+.status-led.online,
+.rail-connection.online,
+.pulse,
+.pulse.hil-pulse,
+.live-pill i,
+.stability.stable i,
+.hil-connection strong i.online,
+.hil-health-row i.good,
+.device-icon.online i:first-child {
+  background: #f2f2f2;
+  box-shadow: 0 0 8px rgba(255,255,255,.35);
+}
+.rail-connection.online { box-shadow: 0 0 0 5px rgba(255,255,255,.08); }
+.device-icon.online { border-color: rgba(255,255,255,.3); box-shadow: none; }
+
+.mode-tabs button.active,
+.mode-tabs button.active.virtual,
+.mode-tabs button.active.hil {
+  color: #ffffff;
+  background: #2a2a2a;
+  border-color: #6c6c6c;
+}
+.disconnect-button { color: #b8b8b8; border-color: #555555; }
+.disconnect-button:hover { color: #ffffff; border-color: #8a8a8a; }
+.hil-mode-pill.hil,
+.hil-mode-pill.virtual,
+.stability.stable,
+.live-pill,
+.hil-metric.good strong { color: #d6d6d6; border-color: rgba(255,255,255,.28); }
+.stability.unstable,
+.hil-metric.warn strong,
+.validation-summary strong,
+.red { color: #c6c6c6; }
+.stability.unstable i,
+.hil-health-row i.bad { background: #9a9a9a; }
+
+.cyan { color: #f2f2f2; }
+.amber { color: #999999; }
+.cyan-bg { background: #f2f2f2; box-shadow: none; }
+.amber-bg { background: #999999; box-shadow: none; }
+.sample-badge b,
+.metric-grid strong { color: #f2f2f2; }
+.compass-panel .panel-body { background-image: none; }
+
+input[type="range"]::-webkit-slider-runnable-track {
+  background: linear-gradient(90deg, #f2f2f2 var(--progress), #3b3b3b var(--progress));
+}
+input[type="range"]::-webkit-slider-thumb {
+  border-radius: 0;
+  background: #ffffff;
+  border-color: #ffffff;
+  box-shadow: none;
+}
+input[type="range"]::-moz-range-track { background: #3b3b3b; }
+input[type="range"]::-moz-range-progress { background: #f2f2f2; }
+input[type="range"]::-moz-range-thumb {
+  border-radius: 0;
+  background: #ffffff;
+  border-color: #ffffff;
 }

@@ -61,7 +61,7 @@ export function RollingRoad({ engine }) {
   return (
     <>
       <mesh geometry={geometry} receiveShadow>
-        <meshStandardMaterial color="#25333a" roughness={0.92} metalness={0.02} side={THREE.DoubleSide} />
+        <meshStandardMaterial color="#111214" roughness={0.96} metalness={0.01} side={THREE.DoubleSide} />
       </mesh>
       <LaneMarkers engine={engine} />
     </>
@@ -82,7 +82,7 @@ function LaneMarkers({ engine }) {
       {Array.from({ length: 12 }, (_, i) => (
         <mesh key={i} position={[0, 0.025, Z_START + i * 4]} rotation={[-Math.PI / 2, 0, 0]}>
           <planeGeometry args={[0.11, 1.8]} />
-          <meshBasicMaterial color="#d5dca8" />
+          <meshBasicMaterial color="#e0b83f" />
         </mesh>
       ))}
     </group>
