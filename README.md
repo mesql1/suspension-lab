@@ -4,6 +4,12 @@ Simulador interativo de uma suspensão massa–mola–amortecedor como filtro me
 
 **Demo:** https://mesql1.github.io/suspension-lab/
 
+## Documentação
+
+A explicação completa da arquitetura, do modelo físico, da transformação bilinear com pre-warp, da FFT, dos gráficos e da integração 3D está em:
+
+- [Documentação técnica completa](docs/DOCUMENTACAO_TECNICA.md)
+
 ## Executar
 
 ```bash
