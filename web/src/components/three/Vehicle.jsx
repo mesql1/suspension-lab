@@ -3,6 +3,8 @@ import { useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 
 const HEIGHT_SCALE = 3.2
+const WHEEL_TRAVEL_SCALE = 0.9
+const WHEEL_BASE_Y = -0.6
 const AXLES = { front: -1.17, rear: 1.03 }
 const MUSTANG_URL = `${import.meta.env.BASE_URL}models/mustang.glb`
 
@@ -10,11 +12,13 @@ function Wheel({ x, z, signal, currentRef }) {
   const ref = useRef()
   useFrame((_, delta) => {
     if (!ref.current) return
-    ref.current.position.y = 0.48 + currentRef.current[signal] * HEIGHT_SCALE
+    const current = currentRef.current
+    const relativeTravel = Math.max(-0.05, Math.min(0.05, current[signal] - current.y))
+    ref.current.position.y = WHEEL_BASE_Y + relativeTravel * WHEEL_TRAVEL_SCALE
     ref.current.rotation.x -= delta * 8
   })
   return (
-    <group ref={ref} position={[x, 0.48, z]}>
+    <group ref={ref} position={[x, WHEEL_BASE_Y, z]}>
       <mesh rotation={[0, 0, Math.PI / 2]} castShadow>
         <cylinderGeometry args={[0.3, 0.3, 0.26, 24]} />
         <meshStandardMaterial color="#11181d" roughness={0.74} />
@@ -50,15 +54,13 @@ export function Vehicle({ engine }) {
   })
 
   return (
-    <group>
-      <Wheel x={-0.82} z={AXLES.front} signal="xFront" currentRef={currentRef} />
-      <Wheel x={0.82} z={AXLES.front} signal="xFront" currentRef={currentRef} />
-      <Wheel x={-0.82} z={AXLES.rear} signal="xRear" currentRef={currentRef} />
-      <Wheel x={0.82} z={AXLES.rear} signal="xRear" currentRef={currentRef} />
+    <group ref={body} position={[0, 1.08, 0]}>
+      <Wheel x={-0.78} z={AXLES.front} signal="xFront" currentRef={currentRef} />
+      <Wheel x={0.78} z={AXLES.front} signal="xFront" currentRef={currentRef} />
+      <Wheel x={-0.78} z={AXLES.rear} signal="xRear" currentRef={currentRef} />
+      <Wheel x={0.78} z={AXLES.rear} signal="xRear" currentRef={currentRef} />
 
-      <group ref={body} position={[0, 1.08, 0]}>
-        <primitive object={mustang} position={[0, -0.71, 0]} />
-      </group>
+      <primitive object={mustang} position={[0, -0.71, 0]} />
     </group>
   )
 }
