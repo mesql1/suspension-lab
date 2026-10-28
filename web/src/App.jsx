@@ -94,89 +94,124 @@ export default function App() {
 
   return (
     <main className="app-shell">
-      <section className="visual-side">
-        <div className="brand">
-          <div className="brand-mark"><span /></div>
-          <div><b>SUSPENSION</b><small>MECHANICAL FILTER LAB</small></div>
-        </div>
-        <div className="scene-wrap">
-          <SimulationScene engine={engine} />
-          <div className="scene-vignette" />
-          <div className="scene-label top-left"><i className={`pulse ${hilStatus.mode !== 'simulation' ? 'hil-pulse' : ''}`} /> {hilStatus.mode === 'hil' ? 'HIL · ESP32 FÍSICO' : hilStatus.mode === 'virtual' ? 'HIL · ESP32 VIRTUAL' : 'SIMULAÇÃO'} · 1 kHz</div>
-          <div className="scene-label top-right">ARRASTE PARA ORBITAR</div>
-          <LiveReadout engine={engine} />
-          <div className="equation-card">
-            <span>FUNÇÃO DE TRANSFERÊNCIA</span>
-            <div className="fraction"><b>Y(s)</b><i /><b>X(s)</b></div>
-            <strong>=</strong>
-            <div className="fraction wide"><b>cs + k</b><i /><b>ms² + cs + k</b></div>
-          </div>
-        </div>
-        <div className="scene-footer">
-          <span><i className="dot cyan-bg" /> Roda = x(t)</span>
-          <span><i className="dot amber-bg" /> Carroceria = y(t)</span>
-          <span className="spacer" />
-          <span>{params.speed} m/s · {(params.speed * 3.6).toFixed(0)} km/h</span>
-        </div>
-      </section>
+      <aside className="nav-rail" aria-label="Navegação do simulador">
+        <a className="rail-logo" href="#scene" aria-label="Suspension Lab">SL</a>
+        <nav>
+          <a className="active" href="#scene" aria-label="Cena 3D" title="Cena 3D">◆</a>
+          <a href="#model" aria-label="Modelo" title="Modelo">◫</a>
+          <a href="#analysis" aria-label="Análises" title="Análises">⌁</a>
+          <a href="#hil" aria-label="Telemetria HIL" title="Telemetria HIL">◎</a>
+          <a href="#signal" aria-label="Excitação da pista" title="Excitação da pista">∿</a>
+        </nav>
+        <div className="rail-spacer" />
+        <span className={`rail-connection ${hilStatus.connected ? 'online' : ''}`} title={hilStatus.connected ? 'Target conectado' : 'Target desconectado'} />
+        <a href="#model" aria-label="Configurações" title="Configurações">⚙</a>
+      </aside>
 
-      <section className="analysis-side">
-        <header className="analysis-header">
+      <section className="dashboard-shell">
+        <header className="dashboard-header">
+          <div className="brand">
+            <div className="brand-mark"><span /></div>
+            <div><b>SUSPENSION LAB</b><small>VEHICLE DYNAMICS CONSOLE</small></div>
+          </div>
           <div>
-            <span className="eyebrow">DOMÍNIO DE LAPLACE · FILTRO PASSA-BAIXAS</span>
+            <span className="eyebrow">SIMULADOR HIL · FILTRO MECÂNICO</span>
             <h1>Dinâmica da suspensão</h1>
           </div>
-          <div className="sample-badge"><span>FS</span><b>1000</b><small>Hz</small></div>
+          <div className="header-status">
+            <span className={`target-chip ${hilStatus.mode}`}><i /> {hilStatus.mode === 'hil' ? 'ESP32 FÍSICO' : hilStatus.mode === 'virtual' ? 'ESP32 VIRTUAL' : 'HOST'}</span>
+            <div className="sample-badge"><span>FS</span><b>1000</b><small>Hz</small></div>
+          </div>
         </header>
 
-        <ModeSelector
-          status={hilStatus}
-          onEnableHil={() => void hilController.enableHil()}
-          onEnableVirtual={() => void hilController.enableVirtual()}
-          onSimulation={() => hilController.useSimulation()}
-          onDisconnect={() => void hilController.disconnect()}
-          onBlockSize={(size) => hilController.setBlockSize(size)}
-        />
+        <div className="dashboard-content">
+          <div className="hero-grid">
+            <section className="visual-side" id="scene">
+              <div className="scene-wrap">
+                <SimulationScene engine={engine} />
+                <div className="scene-vignette" />
+                <div className="scene-label top-left"><i className={`pulse ${hilStatus.mode !== 'simulation' ? 'hil-pulse' : ''}`} /> {hilStatus.mode === 'hil' ? 'HIL · ESP32 FÍSICO' : hilStatus.mode === 'virtual' ? 'HIL · ESP32 VIRTUAL' : 'SIMULAÇÃO'} · 1 kHz</div>
+                <div className="scene-label top-right">ARRASTE PARA ORBITAR</div>
+                <LiveReadout engine={engine} />
+                <div className="equation-card">
+                  <span>FUNÇÃO DE TRANSFERÊNCIA</span>
+                  <div className="fraction"><b>Y(s)</b><i /><b>X(s)</b></div>
+                  <strong>=</strong>
+                  <div className="fraction wide"><b>cs + k</b><i /><b>ms² + cs + k</b></div>
+                </div>
+              </div>
+              <div className="scene-footer">
+                <span><i className="dot cyan-bg" /> Roda = x(t)</span>
+                <span><i className="dot amber-bg" /> Carroceria = y(t)</span>
+                <span className="spacer" />
+                <span>{params.speed} m/s · {(params.speed * 3.6).toFixed(0)} km/h</span>
+              </div>
+            </section>
 
-        <Panel title="Parâmetros do sistema" eyebrow="01 · MODELO" className="controls-panel">
-          <ParameterControls params={params} metrics={metrics} stable={engine.coefficients.stable} onChange={updateParams} onPreset={applyPreset} />
-        </Panel>
+            <aside className="hero-side">
+              <section className="mode-card" id="hil">
+                <div className="compact-card-heading">
+                  <div><span className="eyebrow">TARGET</span><h2>Modo de processamento</h2></div>
+                  <span className={`status-led ${hilStatus.connected ? 'online' : ''}`} />
+                </div>
+                <ModeSelector
+                  status={hilStatus}
+                  onEnableHil={() => void hilController.enableHil()}
+                  onEnableVirtual={() => void hilController.enableVirtual()}
+                  onSimulation={() => hilController.useSimulation()}
+                  onDisconnect={() => void hilController.disconnect()}
+                  onBlockSize={(size) => hilController.setBlockSize(size)}
+                />
+              </section>
 
-        <div className="hil-grid">
-          <Panel title="Telemetria do target" eyebrow="02 · STATUS HIL" action={<span className={`hil-mode-pill ${hilStatus.mode}`}>{hilStatus.mode === 'hil' ? 'FÍSICO' : hilStatus.mode === 'virtual' ? 'VIRTUAL' : 'HOST'}</span>}>
-            <HilStatusPanel status={hilStatus} />
-          </Panel>
-          <Panel title="Erro target × referência" eyebrow="03 · VALIDAÇÃO">
-            <ValidationPlot controller={hilController} status={hilStatus} />
-          </Panel>
+              <Panel title="Telemetria do target" eyebrow="STATUS HIL" className="telemetry-panel" action={<span className={`hil-mode-pill ${hilStatus.mode}`}>{hilStatus.mode === 'hil' ? 'FÍSICO' : hilStatus.mode === 'virtual' ? 'VIRTUAL' : 'HOST'}</span>}>
+                <HilStatusPanel status={hilStatus} />
+              </Panel>
+
+              <Panel title="Polos e zero" eyebrow="PLANO S" className="compass-panel">
+                <PoleZeroPlot m={params.m} c={params.c} k={params.k} />
+              </Panel>
+            </aside>
+          </div>
+
+          <section className="analysis-side">
+            <div id="model">
+              <Panel title="Parâmetros do sistema" eyebrow="01 · MODELO" className="controls-panel">
+                <ParameterControls params={params} metrics={metrics} stable={engine.coefficients.stable} onChange={updateParams} onPreset={applyPreset} />
+              </Panel>
+            </div>
+
+            <div className="two-column cockpit-grid" id="analysis">
+              <Panel title="Resposta em frequência" eyebrow="02 · BODE">
+                <BodePlot m={params.m} c={params.c} k={params.k} fs={engine.fs} />
+              </Panel>
+              <Panel title="Erro target × referência" eyebrow="03 · VALIDAÇÃO">
+                <ValidationPlot controller={hilController} status={hilStatus} />
+              </Panel>
+            </div>
+
+            <div className="two-column cockpit-grid equal">
+              <Panel title="Resposta temporal" eyebrow="04 · OSCILOSCÓPIO" action={<span className="live-pill"><i /> AO VIVO</span>}>
+                <Oscilloscope engine={engine} />
+              </Panel>
+              <Panel title="Densidade espectral" eyebrow="05 · FFT RADIX-2" action={<span className="bin-pill">2048 AMOSTRAS</span>}>
+                <SpectrumPlot engine={engine} />
+              </Panel>
+            </div>
+
+            <div id="signal">
+              <Panel title="Excitação da pista" eyebrow="06 · GERADOR DE SINAL" className="signal-panel">
+                <SignalControls params={params} onChange={updateParams} />
+              </Panel>
+            </div>
+
+            <footer className="app-footer">
+              <span>H(s) = (cs + k) / (ms² + cs + k)</span>
+              <span>Tustin + pre-warp em ωn</span>
+              <span>ESP32 virtual · Web Serial opcional · CRC-8</span>
+            </footer>
+          </section>
         </div>
-
-        <div className="two-column">
-          <Panel title="Resposta em frequência" eyebrow="04 · BODE">
-            <BodePlot m={params.m} c={params.c} k={params.k} fs={engine.fs} />
-          </Panel>
-          <Panel title="Polos e zero" eyebrow="05 · PLANO S">
-            <PoleZeroPlot m={params.m} c={params.c} k={params.k} />
-          </Panel>
-        </div>
-
-        <Panel title="Resposta temporal" eyebrow="06 · OSCILOSCÓPIO" action={<span className="live-pill"><i /> AO VIVO</span>}>
-          <Oscilloscope engine={engine} />
-        </Panel>
-
-        <Panel title="Densidade espectral" eyebrow="07 · FFT RADIX-2" action={<span className="bin-pill">2048 AMOSTRAS</span>}>
-          <SpectrumPlot engine={engine} />
-        </Panel>
-
-        <Panel title="Excitação da pista" eyebrow="08 · GERADOR DE SINAL" className="signal-panel">
-          <SignalControls params={params} onChange={updateParams} />
-        </Panel>
-
-        <footer className="app-footer">
-          <span>H(s) = (cs + k) / (ms² + cs + k)</span>
-          <span>Tustin + pre-warp em ωn</span>
-          <span>ESP32 virtual · Web Serial opcional · CRC-8</span>
-        </footer>
       </section>
     </main>
   )
