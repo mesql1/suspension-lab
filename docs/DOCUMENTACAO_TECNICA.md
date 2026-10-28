@@ -10,7 +10,7 @@ A aplicação reúne quatro áreas:
 2. painéis analíticos desenhados com Canvas 2D;
 3. uma cena 3D renderizada com Three.js/React Three Fiber;
 4. controles React para modificar o sistema em tempo real;
-5. modo HIL via Web Serial, com o filtro executado em um ESP32.
+5. modo HIL com ESP32 virtual no navegador ou, opcionalmente, ESP32 físico via Web Serial.
 
 O site publicado está disponível em:
 
@@ -48,7 +48,7 @@ O site publicado está disponível em:
  inclinação e pista
 ```
 
-O motor de simulação é a fonte lógica das entradas. No modo Simulação ele também produz a saída; no modo HIL a saída vem do ESP32 e é associada à entrada pelo número de sequência. React controla apenas parâmetros de interface; as atualizações em alta frequência usam objetos mutáveis, referências e `useFrame`, evitando uma nova renderização React a cada quadro.
+O motor de simulação é a fonte lógica das entradas. No modo Simulação ele também produz a saída; nos modos ESP32 virtual e físico, a saída vem do target selecionado e é associada à entrada pelo número de sequência. O target virtual usa o mesmo protocolo e o mesmo cálculo do firmware, sem exigir uma placa. React controla apenas parâmetros de interface; as atualizações em alta frequência usam objetos mutáveis, referências e `useFrame`, evitando uma nova renderização React a cada quadro.
 
 ## 3. Modelo físico
 

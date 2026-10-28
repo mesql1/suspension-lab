@@ -68,6 +68,7 @@ button { color: inherit; }
 .mode-tabs button, .disconnect-button { border: 1px solid rgba(133,173,189,.16); background: #0a141c; color: #617a85; padding: 0 16px; font: 650 8px/1 "JetBrains Mono", monospace; letter-spacing: .08em; cursor: pointer; }
 .mode-tabs button + button { border-left: 0; }
 .mode-tabs button.active { color: var(--cyan); background: rgba(94,231,240,.08); border-color: rgba(94,231,240,.42); }
+.mode-tabs button.active.virtual { color: var(--mint); background: rgba(130,246,180,.08); border-color: rgba(130,246,180,.42); }
 .mode-tabs button.active.hil { color: var(--amber); background: rgba(255,180,74,.08); border-color: rgba(255,180,74,.42); }
 .mode-tabs button:disabled { opacity: .35; cursor: not-allowed; }
 .mode-actions { display: flex; align-items: center; gap: 10px; }
@@ -114,6 +115,7 @@ input[type="range"]::-moz-range-thumb { width: 7px; height: 7px; border-radius: 
 .hil-grid .panel { min-width: 0; }
 .hil-mode-pill { border: 1px solid rgba(129,167,182,.14); color: #6d8791; padding: 5px 8px; font: 650 7px/1 "JetBrains Mono", monospace; }
 .hil-mode-pill.hil { color: var(--amber); border-color: rgba(255,180,74,.3); }
+.hil-mode-pill.virtual { color: var(--mint); border-color: rgba(130,246,180,.3); }
 .hil-status-body { min-height: 194px; padding: 12px 14px; display: grid; grid-template-columns: .75fr 1.25fr; grid-template-rows: 1fr auto; gap: 10px 13px; }
 .hil-connection { display: flex; gap: 10px; align-items: flex-start; }
 .device-icon { width: 40px; height: 48px; flex: 0 0 40px; border: 1px solid #29404b; position: relative; display: flex; justify-content: center; gap: 4px; padding-top: 10px; }

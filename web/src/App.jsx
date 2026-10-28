@@ -56,7 +56,22 @@ export default function App() {
   const hilStatus = useSyncExternalStore(hilController.subscribe, hilController.getSnapshot, hilController.getSnapshot)
   const [params, setParams] = useState(INITIAL_PARAMS)
 
-  useEffect(() => () => hilController.dispose(), [hilController])
+  useEffect(() => {
+    void hilController.start()
+    return () => hilController.dispose()
+  }, [hilController])
+
+  useEffect(() => {
+    let frame = 0
+    let previous = performance.now()
+    const tick = (now) => {
+      engine.advance((now - previous) / 1000)
+      previous = now
+      frame = requestAnimationFrame(tick)
+    }
+    frame = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frame)
+  }, [engine])
 
   const metrics = useMemo(() => {
     const omega = Math.sqrt(params.k / params.m)
@@ -87,7 +102,7 @@ export default function App() {
         <div className="scene-wrap">
           <SimulationScene engine={engine} />
           <div className="scene-vignette" />
-          <div className="scene-label top-left"><i className={`pulse ${hilStatus.mode === 'hil' ? 'hil-pulse' : ''}`} /> {hilStatus.mode === 'hil' ? 'HIL · ESP32' : 'SIMULAÇÃO'} · 1 kHz</div>
+          <div className="scene-label top-left"><i className={`pulse ${hilStatus.mode !== 'simulation' ? 'hil-pulse' : ''}`} /> {hilStatus.mode === 'hil' ? 'HIL · ESP32 FÍSICO' : hilStatus.mode === 'virtual' ? 'HIL · ESP32 VIRTUAL' : 'SIMULAÇÃO'} · 1 kHz</div>
           <div className="scene-label top-right">ARRASTE PARA ORBITAR</div>
           <LiveReadout engine={engine} />
           <div className="equation-card">
@@ -117,6 +132,7 @@ export default function App() {
         <ModeSelector
           status={hilStatus}
           onEnableHil={() => void hilController.enableHil()}
+          onEnableVirtual={() => void hilController.enableVirtual()}
           onSimulation={() => hilController.useSimulation()}
           onDisconnect={() => void hilController.disconnect()}
           onBlockSize={(size) => hilController.setBlockSize(size)}
@@ -127,7 +143,7 @@ export default function App() {
         </Panel>
 
         <div className="hil-grid">
-          <Panel title="Telemetria do target" eyebrow="02 · STATUS HIL" action={<span className={`hil-mode-pill ${hilStatus.mode}`}>{hilStatus.mode === 'hil' ? 'TARGET' : 'HOST'}</span>}>
+          <Panel title="Telemetria do target" eyebrow="02 · STATUS HIL" action={<span className={`hil-mode-pill ${hilStatus.mode}`}>{hilStatus.mode === 'hil' ? 'FÍSICO' : hilStatus.mode === 'virtual' ? 'VIRTUAL' : 'HOST'}</span>}>
             <HilStatusPanel status={hilStatus} />
           </Panel>
           <Panel title="Erro target × referência" eyebrow="03 · VALIDAÇÃO">
@@ -159,7 +175,7 @@ export default function App() {
         <footer className="app-footer">
           <span>H(s) = (cs + k) / (ms² + cs + k)</span>
           <span>Tustin + pre-warp em ωn</span>
-          <span>Web Serial · 921.600 baud · CRC-8</span>
+          <span>ESP32 virtual · Web Serial opcional · CRC-8</span>
         </footer>
       </section>
     </main>

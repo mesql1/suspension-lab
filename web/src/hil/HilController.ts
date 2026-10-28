@@ -11,8 +11,17 @@ import {
   type TargetStatus,
 } from './protocol'
 import { HilSerialService, type SerialState } from './serial'
+import { VirtualHilTarget } from './virtualTarget'
 
-export type HilMode = 'simulation' | 'hil'
+export type HilMode = 'simulation' | 'virtual' | 'hil'
+
+interface HilTransport {
+  state: SerialState
+  parserStats: { invalidCrc: number; discardedBytes: number }
+  connect(): Promise<void>
+  write(data: Uint8Array): Promise<void>
+  disconnect(notify?: boolean): Promise<void>
+}
 
 export interface HilSnapshot {
   mode: HilMode
@@ -61,6 +70,7 @@ const INITIAL_STATUS: TargetStatus = {
 
 export class HilController {
   private readonly serial = new HilSerialService()
+  private readonly virtualTarget = new VirtualHilTarget()
   private readonly listeners = new Set<() => void>()
   private readonly pending = new Map<number, PendingBlock>()
   private readonly referenceState = criarEstadoFiltro()
@@ -85,9 +95,12 @@ export class HilController {
   private rttMs = 0
   private snapshot: HilSnapshot
   private lastNotifyAt = 0
+  private activationToken = 0
 
   mode: HilMode = 'simulation'
   blockSize = 16
+
+  private readonly sampleSink = (sample: number) => this.acceptLogicalSample(sample)
 
   constructor(private readonly engine: SimulationEngine) {
     this.referenceCoefficients = gerarCoeficientes(
@@ -97,9 +110,16 @@ export class HilController {
       engine.fs,
     )
     this.serial.onFrame = (frame) => this.handleFrame(frame)
-    this.serial.onStateChange = (state, message) => this.handleSerialState(state, message)
-    this.engine.setSampleSink((sample: number) => this.acceptLogicalSample(sample))
+    this.serial.onStateChange = (state, message) => this.handleTransportState('hil', state, message)
+    this.virtualTarget.onFrame = (frame) => this.handleFrame(frame)
+    this.virtualTarget.onStateChange = (state, message) => this.handleTransportState('virtual', state, message)
+    this.engine.setSampleSink(this.sampleSink)
     this.snapshot = this.createSnapshot()
+  }
+
+  async start(): Promise<void> {
+    this.engine.setSampleSink(this.sampleSink)
+    await this.enableVirtual()
   }
 
   subscribe = (listener: () => void) => {
@@ -111,9 +131,10 @@ export class HilController {
 
   private createSnapshot(): HilSnapshot {
     const error = this.computeErrorMetrics()
+    const transport = this.activeTransport
     return {
       mode: this.mode,
-      serialState: this.serial.state,
+      serialState: transport?.state ?? this.serial.state,
       supported: HilSerialService.isSupported(),
       message: this.latestMessage,
       blockSize: this.blockSize,
@@ -124,8 +145,8 @@ export class HilController {
       packetsReceived: this.packetsReceived,
       packetsLost: this.packetsLost,
       packetsReordered: this.packetsReordered,
-      invalidCrc: this.serial.parserStats.invalidCrc,
-      discardedBytes: this.serial.parserStats.discardedBytes + this.targetStatus.discardedBytes,
+      invalidCrc: transport?.parserStats.invalidCrc ?? 0,
+      discardedBytes: (transport?.parserStats.discardedBytes ?? 0) + this.targetStatus.discardedBytes,
       maxJitterUs: this.targetStatus.maxJitterUs,
       meanJitterUs: this.targetStatus.meanJitterUs,
       isrOverruns: this.targetStatus.isrOverruns,
@@ -146,15 +167,34 @@ export class HilController {
     for (const listener of this.listeners) listener()
   }
 
-  private handleSerialState(state: SerialState, message?: string) {
+  private get activeTransport(): HilTransport | null {
+    if (this.mode === 'virtual') return this.virtualTarget
+    if (this.mode === 'hil') return this.serial
+    return null
+  }
+
+  private handleTransportState(source: HilMode, state: SerialState, message?: string) {
     if (message) this.latestMessage = message
     if (state === 'error' || state === 'disconnected' || state === 'unsupported') {
-      if (this.mode === 'hil') this.fallbackToSimulation('Conexão HIL perdida; DSP local reativado.')
+      if (this.mode === source) this.fallbackToSimulation('Conexão do target perdida; DSP local reativado.')
     }
     this.notify(true)
   }
 
+  async enableVirtual(): Promise<void> {
+    const token = ++this.activationToken
+    if (this.mode === 'hil') await this.serial.disconnect(false)
+    await this.virtualTarget.connect()
+    if (token !== this.activationToken) return
+    this.activateTarget('virtual', 'ESP32 virtual ativo; nenhum hardware é necessário.')
+    await this.sendParamsNow()
+    const pingSeq = this.paramsSequence++ & 0xFFFF
+    this.pingSentAt.set(pingSeq, performance.now())
+    await this.virtualTarget.write(encodePing(pingSeq))
+  }
+
   async enableHil(): Promise<void> {
+    ++this.activationToken
     if (!HilSerialService.isSupported()) {
       this.latestMessage = 'Web Serial requer Chrome/Edge em HTTPS ou localhost.'
       this.notify(true)
@@ -162,12 +202,8 @@ export class HilController {
     }
     try {
       await this.serial.connect()
-      this.pending.clear()
-      this.lastResultSequence = null
-      this.blockIndex = 0
-      this.mode = 'hil'
-      this.engine.setHilMode(true)
-      this.latestMessage = 'ESP32 conectado; aguardando jitter buffer.'
+      await this.virtualTarget.disconnect(false)
+      this.activateTarget('hil', 'ESP32 conectado; aguardando jitter buffer.')
       await this.sendParamsNow()
       const pingSeq = this.paramsSequence++ & 0xFFFF
       this.pingSentAt.set(pingSeq, performance.now())
@@ -179,12 +215,17 @@ export class HilController {
   }
 
   async disconnect(): Promise<void> {
+    ++this.activationToken
     this.fallbackToSimulation('HIL desconectado pelo usuário.')
     await this.serial.disconnect()
+    await this.virtualTarget.disconnect(false)
   }
 
   useSimulation(): void {
+    ++this.activationToken
     this.fallbackToSimulation('DSP executado localmente no navegador.')
+    void this.virtualTarget.disconnect(false)
+    void this.serial.disconnect(false)
   }
 
   private fallbackToSimulation(message: string) {
@@ -192,6 +233,16 @@ export class HilController {
     this.engine.setHilMode(false)
     this.pending.clear()
     this.blockIndex = 0
+    this.latestMessage = message
+    this.notify(true)
+  }
+
+  private activateTarget(mode: Exclude<HilMode, 'simulation'>, message: string) {
+    this.pending.clear()
+    this.lastResultSequence = null
+    this.blockIndex = 0
+    this.mode = mode
+    this.engine.setHilMode(true)
     this.latestMessage = message
     this.notify(true)
   }
@@ -213,13 +264,15 @@ export class HilController {
   }
 
   private async sendParamsNow() {
-    if (this.serial.state !== 'connected') return
+    const transport = this.activeTransport
+    if (!transport || transport.state !== 'connected') return
     const { m, c, k } = this.engine.params
-    await this.serial.write(encodeParams(this.paramsSequence++ & 0xFFFF, m, c, k))
+    await transport.write(encodeParams(this.paramsSequence++ & 0xFFFF, m, c, k))
   }
 
   private acceptLogicalSample(sample: number) {
-    if (this.mode !== 'hil' || this.serial.state !== 'connected') return
+    const transport = this.activeTransport
+    if (!transport || transport.state !== 'connected') return
     this.block[this.blockIndex] = sample
     this.blockReference[this.blockIndex] = processarAmostra(
       sample,
@@ -239,8 +292,8 @@ export class HilController {
     }
     this.blockIndex = 0
     this.packetsSent += 1
-    void this.serial.write(encodeSamples(seq, x)).catch(() => {
-      this.fallbackToSimulation('Falha de escrita serial; DSP local reativado.')
+    void transport.write(encodeSamples(seq, x)).catch(() => {
+      this.fallbackToSimulation('Falha de escrita no target; DSP local reativado.')
     })
   }
 
@@ -314,8 +367,10 @@ export class HilController {
   }
 
   dispose() {
+    ++this.activationToken
     if (this.paramsTimer) clearTimeout(this.paramsTimer)
     this.engine.setSampleSink(null)
     void this.serial.disconnect(false)
+    void this.virtualTarget.disconnect(false)
   }
 }

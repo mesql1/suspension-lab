@@ -114,5 +114,6 @@ export class HilSerialService {
     this.port = null
     this.readTask = null
     if (notify) this.setState(HilSerialService.isSupported() ? 'disconnected' : 'unsupported')
+    else this.state = HilSerialService.isSupported() ? 'disconnected' : 'unsupported'
   }
 }

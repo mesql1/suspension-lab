@@ -1,19 +1,20 @@
 # Suspension Lab HIL
 
-Plataforma Hardware-in-the-Loop para demonstrar uma suspensão veicular como filtro mecânico passa-baixas. O navegador gera a pista e renderiza os painéis/3D; no modo HIL, um ESP32 DevKit v1 executa o biquad a 1 kHz e devolve a resposta por USB-UART.
+Plataforma HIL para demonstrar uma suspensão veicular como filtro mecânico passa-baixas. O navegador gera a pista e renderiza os painéis/3D. Um **ESP32 virtual**, ativo por padrão, executa o mesmo protocolo e o mesmo biquad a 1 kHz sem exigir placa física; o ESP32 real permanece como opção avançada via USB-UART.
 
 **Aplicação:** https://mesql1.github.io/suspension-lab/
 
 ## Modos
 
 - **Simulação:** todo o DSP roda no navegador, como referência em precisão dupla.
-- **HIL:** `x[n]` é enviado em blocos binários ao ESP32; `y[n]` recebido controla a cabine e alimenta o osciloscópio/FFT.
-- Se a serial cair, o host retorna automaticamente ao modo Simulação.
+- **ESP32 virtual (padrão):** `x[n]` atravessa o protocolo binário e um target emulado devolve `y[n]`; funciona em qualquer navegador moderno e não requer hardware.
+- **ESP32 físico (opcional):** os mesmos quadros são enviados por Web Serial a uma placa real.
+- Se o target falhar, o host retorna automaticamente ao modo Simulação.
 
 ## Monorepo
 
 ```text
-├── web/       React, Three.js, Canvas, Web Serial e testes Vitest
+├── web/       React, Three.js, target virtual, Web Serial e testes Vitest
 ├── firmware/  PlatformIO, ESP32, timer ISR, biquad e protocolo
 └── docs/      matemática, protocolo e validação
 ```
@@ -40,7 +41,7 @@ pio run
 pio run -t upload
 ```
 
-Após a gravação, abra a aplicação em Chrome ou Edge, selecione **HIL · ESP32**, escolha a porta USB e autorize a conexão. Web Serial exige HTTPS ou localhost.
+Nenhum firmware é necessário para usar o site: basta abrir a aplicação e deixar **ESP32 VIRTUAL** selecionado. Para a demonstração opcional com placa, após a gravação abra a aplicação em Chrome ou Edge, selecione **ESP32 FÍSICO**, escolha a porta USB e autorize a conexão. Web Serial exige HTTPS ou localhost.
 
 ## Documentação
 
@@ -54,4 +55,5 @@ Após a gravação, abra a aplicação em Chrome ou Edge, selecione **HIL · ESP
 - Testes web: 9 aprovados.
 - Build Vite: aprovado.
 - Build PlatformIO para `esp32dev`: aprovado.
+- Target virtual: disponível sem placa e identificado como emulação no painel.
 - Medições físicas de jitter e latência: dependem de uma placa conectada; o procedimento está documentado sem inventar resultados.

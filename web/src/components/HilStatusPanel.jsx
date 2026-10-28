@@ -8,13 +8,14 @@ function Metric({ label, value, unit, tone = '' }) {
   )
 }
 
-export function ModeSelector({ status, onEnableHil, onSimulation, onDisconnect, onBlockSize }) {
+export function ModeSelector({ status, onEnableHil, onEnableVirtual, onSimulation, onDisconnect, onBlockSize }) {
   const connected = status.serialState === 'connected'
   return (
     <div className="mode-bar">
       <div className="mode-tabs" aria-label="Modo de processamento">
         <button type="button" className={status.mode === 'simulation' ? 'active' : ''} onClick={onSimulation}>SIMULAÇÃO</button>
-        <button type="button" className={status.mode === 'hil' ? 'active hil' : ''} onClick={onEnableHil} disabled={!status.supported}>HIL · ESP32</button>
+        <button type="button" className={status.mode === 'virtual' ? 'active virtual' : ''} onClick={onEnableVirtual}>ESP32 VIRTUAL</button>
+        <button type="button" className={status.mode === 'hil' ? 'active hil' : ''} onClick={onEnableHil} disabled={!status.supported}>ESP32 FÍSICO</button>
       </div>
       <div className="mode-actions">
         <label>Bloco <b>{status.blockSize}</b>
@@ -27,7 +28,8 @@ export function ModeSelector({ status, onEnableHil, onSimulation, onDisconnect, 
 }
 
 export function HilStatusPanel({ status }) {
-  const online = status.mode === 'hil' && status.serialState === 'connected'
+  const online = status.mode !== 'simulation' && status.serialState === 'connected'
+  const virtual = status.mode === 'virtual'
   const serialLabel = status.serialState === 'unsupported'
     ? 'NÃO SUPORTADO'
     : status.serialState === 'connecting'
@@ -38,16 +40,16 @@ export function HilStatusPanel({ status }) {
       <div className="hil-connection">
         <div className={`device-icon ${online ? 'online' : ''}`}><i /><i /><i /></div>
         <div>
-          <span>TARGET · ESP32 DEVKIT V1</span>
+          <span>TARGET · {virtual ? 'ESP32 VIRTUAL' : 'ESP32 DEVKIT V1'}</span>
           <strong><i className={online ? 'online' : ''} /> {serialLabel}</strong>
-          <small>{status.message || (status.supported ? 'Selecione HIL para abrir a porta serial.' : 'Use Chrome ou Edge em HTTPS/localhost.')}</small>
+          <small>{status.message || (status.supported ? 'Use o target virtual ou conecte um ESP32 físico.' : 'O target virtual funciona neste navegador.')}</small>
         </div>
       </div>
       <div className="hil-metrics-grid">
         <Metric label="RTT" value={status.rttMs.toFixed(1)} unit="ms" />
         <Metric label="ONE-WAY EST." value={status.oneWayMs.toFixed(1)} unit="ms" />
-        <Metric label="JITTER MÁX." value={status.maxJitterUs.toFixed(1)} unit="µs" tone={status.maxJitterUs > 100 ? 'warn' : 'good'} />
-        <Metric label="JITTER MÉD." value={status.meanJitterUs.toFixed(1)} unit="µs" />
+        <Metric label="JITTER MÁX." value={virtual ? '—' : status.maxJitterUs.toFixed(1)} unit={virtual ? 'não medido' : 'µs'} tone={!virtual && status.maxJitterUs > 100 ? 'warn' : 'good'} />
+        <Metric label="JITTER MÉD." value={virtual ? '—' : status.meanJitterUs.toFixed(1)} unit={virtual ? 'não medido' : 'µs'} />
         <Metric label="BLOCOS RX/TX" value={`${status.packetsReceived}/${status.packetsSent}`} unit="quadros" />
         <Metric label="PERDIDOS" value={status.packetsLost} unit="quadros" tone={status.packetsLost ? 'warn' : ''} />
         <Metric label="REORDENADOS" value={status.packetsReordered} unit="quadros" tone={status.packetsReordered ? 'warn' : ''} />

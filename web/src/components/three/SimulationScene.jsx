@@ -1,10 +1,9 @@
-import { Canvas, useFrame } from '@react-three/fiber'
+import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import { RollingRoad } from './RollingRoad'
 import { Vehicle } from './Vehicle'
 
 function Simulation({ engine }) {
-  useFrame((_, delta) => engine.advance(delta), -10)
   return (
     <>
       <color attach="background" args={['#071018']} />

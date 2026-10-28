@@ -1,5 +1,19 @@
 # HIL — montagem, testes e relatório de validação
 
+## 0. Uso sem hardware
+
+O modo **ESP32 VIRTUAL** é o padrão e não exige montagem, driver, cabo ou navegador com Web Serial. Ele processa os mesmos blocos, coeficientes, sequências e CRC do caminho físico. As métricas dependentes de eletrônica — jitter da ISR, overruns reais e latência USB — aparecem como não medidas, pois não seria correto inferi-las a partir do emulador.
+
+Para validar sem placa:
+
+1. abra o site em qualquer navegador moderno;
+2. confirme **ESP32 VIRTUAL** na barra de modos;
+3. altere massa, amortecimento, rigidez e tamanho do bloco;
+4. observe `BLOCOS RX/TX`, RTT emulado e o erro target × referência;
+5. selecione **SIMULAÇÃO** para comparar com o processamento local direto.
+
+As seções seguintes são opcionais e se aplicam apenas a quem dispõe de hardware.
+
 ## 1. Materiais
 
 - ESP32 DevKit v1;
@@ -23,7 +37,7 @@ Se necessário, configure `upload_port = COM5` no ambiente do `platformio.ini`, 
 ## 3. Uso
 
 1. Abra <https://mesql1.github.io/suspension-lab/> em Chrome ou Edge.
-2. Clique em **HIL · ESP32**.
+2. Clique em **ESP32 FÍSICO**.
 3. Selecione a porta CP2102/CH340 e autorize.
 4. Aguarde a pré-carga de 32 amostras.
 5. Observe STATUS HIL e `y_target − y_ref`.

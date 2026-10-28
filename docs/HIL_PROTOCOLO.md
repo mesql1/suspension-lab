@@ -2,6 +2,8 @@
 
 ## 1. Arquitetura
 
+A aplicação possui dois targets intercambiáveis. O **ESP32 virtual** é o padrão e roda integralmente no navegador; o **ESP32 físico** é opcional. Ambos usam os mesmos tipos de quadro, números de sequência, CRC e cálculos do biquad, portanto a demonstração da lógica HIL não depende da disponibilidade de uma placa.
+
 ```text
 ┌──────────────────────────────────────────────────────────────┐
 │ Host — navegador Chromium                                    │
@@ -17,7 +19,18 @@
 └──────────────────────────────────────────────────────────────┘
 ```
 
-O navegador não tenta temporizar uma escrita a cada 1 ms. Ele gera amostras em um relógio lógico de 1 kHz e envia blocos, por padrão com `N = 16`. O timer do ESP32 é o relógio físico do filtro.
+O navegador não tenta temporizar uma escrita a cada 1 ms. Ele gera amostras em um relógio lógico de 1 kHz e envia blocos, por padrão com `N = 16`. No target físico, o timer do ESP32 é o relógio do filtro. No target virtual, cada bloco é processado em precisão dupla no navegador e a resposta é fragmentada antes de entrar no parser incremental, exercitando o mesmo caminho de recepção usado pela serial.
+
+### 1.1 Target virtual
+
+O arquivo `web/src/hil/virtualTarget.ts` emula o firmware:
+
+1. recebe `PARAMS`, recalcula os coeficientes e mantém o último conjunto válido se houver erro;
+2. recebe `SAMPLES`, executa o filtro amostra a amostra e devolve `RESULT` com o mesmo `seq`;
+3. ecoa `PING/RESET`, permitindo medir o tempo de ida e volta dentro do host;
+4. emite `STATUS` e passa as respostas pelo `FrameParser` em fragmentos.
+
+A latência curta usada pelo emulador serve apenas para tornar o fluxo assíncrono. Ela não representa uma medição de USB ou de microcontrolador. Por isso o painel mostra jitter como **não medido** no modo virtual.
 
 ## 2. Formato do quadro
 
