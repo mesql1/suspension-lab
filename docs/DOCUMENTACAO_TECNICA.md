@@ -6,10 +6,11 @@ O Suspension Lab é um simulador didático que trata a suspensão de um veículo
 
 A aplicação reúne quatro áreas:
 
-1. um motor DSP executado a uma taxa fixa de 1.000 Hz;
+1. um motor DSP de referência executado a uma taxa fixa de 1.000 Hz;
 2. painéis analíticos desenhados com Canvas 2D;
 3. uma cena 3D renderizada com Three.js/React Three Fiber;
-4. controles React para modificar o sistema em tempo real.
+4. controles React para modificar o sistema em tempo real;
+5. modo HIL via Web Serial, com o filtro executado em um ESP32.
 
 O site publicado está disponível em:
 
@@ -47,7 +48,7 @@ O site publicado está disponível em:
  inclinação e pista
 ```
 
-O motor de simulação é a fonte única dos dados. React controla apenas parâmetros de interface; as atualizações em alta frequência usam objetos mutáveis, referências e `useFrame`, evitando uma nova renderização React a cada quadro.
+O motor de simulação é a fonte lógica das entradas. No modo Simulação ele também produz a saída; no modo HIL a saída vem do ESP32 e é associada à entrada pelo número de sequência. React controla apenas parâmetros de interface; as atualizações em alta frequência usam objetos mutáveis, referências e `useFrame`, evitando uma nova renderização React a cada quadro.
 
 ## 3. Modelo físico
 
@@ -199,7 +200,7 @@ Essas frequências foram escolhidas para deixar visível a diferença entre movi
 
 ### 4.2 Ruído rosa
 
-O ruído rosa é produzido pelo filtro de Paul Kellet, implementado em `src/dsp/noise.js`. Um gerador `xorshift32` produz ruído branco reproduzível; sete estados recursivos ponderam diferentes regiões do espectro.
+O ruído rosa é produzido pelo filtro de Paul Kellet, implementado em `web/src/dsp/noise.js`. Um gerador `xorshift32` produz ruído branco reproduzível; sete estados recursivos ponderam diferentes regiões do espectro.
 
 O resultado possui aproximadamente uma redução de 3 dB por oitava, ou densidade espectral proporcional a `1/f`. Isso o torna mais adequado para representar superfícies naturais do que ruído branco, que distribui a mesma potência por hertz.
 
@@ -211,7 +212,7 @@ O estado do gerador é mantido entre amostras e nenhuma estrutura é alocada den
 
 A taxa de quadros da cena 3D não é uma taxa adequada para DSP. Se o filtro operasse diretamente a 60 Hz, a frequência de Nyquist seria apenas 30 Hz e a componente de 46 Hz da pista sofreria aliasing.
 
-O projeto usa:
+O host e o target usam:
 
 ```text
 fs = 1.000 Hz
@@ -615,13 +616,13 @@ A cena usa luz ambiente, luz hemisférica, luz direcional com sombras e uma luz 
 
 ## 13. Estado React e integração
 
-`App.jsx` mantém os parâmetros controláveis em estado React:
+`web/src/App.jsx` mantém os parâmetros controláveis em estado React:
 
 ```text
 m, c, k, speed, waveAmplitude, roughnessAmplitude, noiseAmplitude
 ```
 
-O `SimulationEngine` é criado uma única vez com `useMemo`. Ao alterar um slider:
+O `SimulationEngine` e o `HilController` são criados uma única vez com `useMemo`. Ao alterar um slider:
 
 1. o estado React é atualizado para redesenhar valores, métricas e gráficos estáticos;
 2. `engine.setParams()` atualiza imediatamente o motor mutável;
@@ -648,43 +649,32 @@ Os presets usam exatamente o mesmo caminho de atualização dos sliders, portant
 ```text
 suspension-lab/
 ├── .github/workflows/deploy-pages.yml
+├── firmware/
+│   ├── include/
+│   ├── src/
+│   └── platformio.ini
 ├── docs/
-│   └── DOCUMENTACAO_TECNICA.md
-├── src/
-│   ├── components/
-│   │   ├── charts/
-│   │   │   ├── BodePlot.jsx
-│   │   │   ├── Oscilloscope.jsx
-│   │   │   ├── PoleZeroPlot.jsx
-│   │   │   ├── SpectrumPlot.jsx
-│   │   │   └── canvas.js
-│   │   ├── three/
-│   │   │   ├── RollingRoad.jsx
-│   │   │   ├── SimulationScene.jsx
-│   │   │   └── Vehicle.jsx
-│   │   ├── Panel.jsx
-│   │   └── ParameterControls.jsx
-│   ├── dsp/
-│   │   ├── biquad.js
-│   │   ├── fft.js
-│   │   ├── frequency.js
-│   │   ├── noise.js
-│   │   ├── ringBuffer.js
-│   │   └── dsp.test.js
-│   ├── hooks/useCanvasSize.js
-│   ├── simulation/SimulationEngine.js
-│   ├── App.jsx
-│   ├── main.jsx
-│   └── styles.css
-├── index.html
+├── web/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── charts/
+│   │   │   └── three/
+│   │   ├── dsp/
+│   │   ├── hil/
+│   │   ├── hooks/
+│   │   ├── simulation/
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   ├── index.html
+│   ├── package.json
+│   └── vite.config.js
 ├── package.json
-├── tailwind.config.js
-└── vite.config.js
+└── package-lock.json
 ```
 
 ## 16. Testes automatizados
 
-`src/dsp/dsp.test.js` verifica três propriedades:
+`web/src/dsp/dsp.test.js` verifica três propriedades, e `web/src/hil/protocol.test.ts` cobre enquadramento, fragmentação, corrupção, ressincronização e endianess:
 
 1. o ganho DC do biquad é unitário e seus polos estão dentro do círculo unitário;
 2. a resposta a uma entrada degrau converge para 1;
@@ -704,7 +694,7 @@ npm run build
 
 ## 17. GitHub Pages
 
-O Vite usa:
+O Vite em `web/` usa:
 
 ```js
 base: '/suspension-lab/'
@@ -717,8 +707,8 @@ O workflow `.github/workflows/deploy-pages.yml` executa:
 1. checkout da branch `main`;
 2. configuração do Node.js;
 3. `npm ci`;
-4. `npm run build`;
-5. upload da pasta `dist`;
+4. `npm run build` pelo workspace raiz;
+5. upload da pasta `web/dist`;
 6. deploy com `actions/deploy-pages`.
 
 Cada push em `main` publica automaticamente uma nova versão.
@@ -743,7 +733,7 @@ O Vite exibirá o endereço local no terminal.
 
 ### Adicionar uma frequência de pista
 
-Edite `generateRoadSample()` em `src/simulation/SimulationEngine.js` e adicione outro termo senoidal. A frequência deve permanecer abaixo de 500 Hz; na prática, mantenha margem significativa em relação a Nyquist.
+Edite `generateRoadSample()` em `web/src/simulation/SimulationEngine.js` e adicione outro termo senoidal. A frequência deve permanecer abaixo de 500 Hz; na prática, mantenha margem significativa em relação a Nyquist.
 
 ### Alterar a taxa DSP
 
@@ -751,7 +741,7 @@ Modifique `this.fs` no construtor do motor. Os coeficientes, atrasos e eixos de 
 
 ### Adicionar outro modelo de suspensão
 
-Crie um novo gerador de coeficientes em `src/dsp/` com a mesma interface de `gerarCoeficientes()` e mantenha `processarAmostra()` compatível com a ordem do filtro.
+Crie um novo gerador em `web/src/dsp/` e a implementação correspondente em `firmware/src/Dsp.cpp`, mantendo os dois lados matematicamente equivalentes.
 
 ### Alterar a geometria do veículo
 

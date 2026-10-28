@@ -26,7 +26,24 @@ export class SimulationEngine {
     this.roadHistory = new RingBuffer(32768)
     this.time = 0
     this.accumulator = 0
-    this.current = { xFront: 0, xRear: 0, yFront: 0, yRear: 0, y: 0, pitch: 0 }
+    this.hilMode = false
+    this.sampleSink = null
+    this.current = { xFront: 0, xRear: 0, yFront: 0, yRear: 0, y: 0, yRef: 0, pitch: 0 }
+  }
+
+  setHilMode(enabled) {
+    this.hilMode = Boolean(enabled)
+  }
+
+  setSampleSink(sink) {
+    this.sampleSink = sink
+  }
+
+  ingestHilSample(x, y, yRef) {
+    this.input.push(x)
+    this.output.push(y)
+    this.current.y = Number.isFinite(y) ? y : this.current.y
+    this.current.yRef = Number.isFinite(yRef) ? yRef : this.current.yRef
   }
 
   setParams(next) {
@@ -62,13 +79,18 @@ export class SimulationEngine {
     const x = (xFront + xRear) * 0.5
     const y = (yFront + yRear) * 0.5
 
-    this.input.push(x)
-    this.output.push(y)
+    if (this.hilMode) {
+      this.sampleSink?.(x)
+    } else {
+      this.input.push(x)
+      this.output.push(y)
+      this.current.y = y
+      this.current.yRef = y
+    }
     this.current.xFront = xFront
     this.current.xRear = xRear
     this.current.yFront = yFront
     this.current.yRear = yRear
-    this.current.y = y
     this.current.pitch = Math.atan2(yFront - yRear, 2.72)
     this.time += this.dt
   }

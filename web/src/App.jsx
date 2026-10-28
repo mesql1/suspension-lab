@@ -1,13 +1,16 @@
-import { useCallback, useMemo, useRef } from 'react'
+import { useCallback, useMemo, useRef, useSyncExternalStore } from 'react'
 import { useEffect, useState } from 'react'
+import { HilStatusPanel, ModeSelector } from './components/HilStatusPanel'
 import { Panel } from './components/Panel'
 import { ParameterControls, SignalControls } from './components/ParameterControls'
 import { BodePlot } from './components/charts/BodePlot'
 import { Oscilloscope } from './components/charts/Oscilloscope'
 import { PoleZeroPlot } from './components/charts/PoleZeroPlot'
 import { SpectrumPlot } from './components/charts/SpectrumPlot'
+import { ValidationPlot } from './components/charts/ValidationPlot'
 import { SimulationScene } from './components/three/SimulationScene'
 import { SimulationEngine, suspensionPresets } from './simulation/SimulationEngine'
+import { HilController } from './hil/HilController'
 
 const INITIAL_PARAMS = {
   m: 340,
@@ -49,7 +52,11 @@ function LiveReadout({ engine }) {
 
 export default function App() {
   const engine = useMemo(() => new SimulationEngine(INITIAL_PARAMS), [])
+  const hilController = useMemo(() => new HilController(engine), [engine])
+  const hilStatus = useSyncExternalStore(hilController.subscribe, hilController.getSnapshot, hilController.getSnapshot)
   const [params, setParams] = useState(INITIAL_PARAMS)
+
+  useEffect(() => () => hilController.dispose(), [hilController])
 
   const metrics = useMemo(() => {
     const omega = Math.sqrt(params.k / params.m)
@@ -61,9 +68,12 @@ export default function App() {
     setParams((current) => {
       const merged = { ...current, ...next }
       engine.setParams(next)
+      if (next.m !== undefined || next.c !== undefined || next.k !== undefined) {
+        hilController.updateParams(merged.m, merged.c, merged.k)
+      }
       return merged
     })
-  }, [engine])
+  }, [engine, hilController])
 
   const applyPreset = useCallback((name) => updateParams(suspensionPresets[name]), [updateParams])
 
@@ -77,7 +87,7 @@ export default function App() {
         <div className="scene-wrap">
           <SimulationScene engine={engine} />
           <div className="scene-vignette" />
-          <div className="scene-label top-left"><i className="pulse" /> SIMULAÇÃO · 1 kHz</div>
+          <div className="scene-label top-left"><i className={`pulse ${hilStatus.mode === 'hil' ? 'hil-pulse' : ''}`} /> {hilStatus.mode === 'hil' ? 'HIL · ESP32' : 'SIMULAÇÃO'} · 1 kHz</div>
           <div className="scene-label top-right">ARRASTE PARA ORBITAR</div>
           <LiveReadout engine={engine} />
           <div className="equation-card">
@@ -104,35 +114,52 @@ export default function App() {
           <div className="sample-badge"><span>FS</span><b>1000</b><small>Hz</small></div>
         </header>
 
+        <ModeSelector
+          status={hilStatus}
+          onEnableHil={() => void hilController.enableHil()}
+          onSimulation={() => hilController.useSimulation()}
+          onDisconnect={() => void hilController.disconnect()}
+          onBlockSize={(size) => hilController.setBlockSize(size)}
+        />
+
         <Panel title="Parâmetros do sistema" eyebrow="01 · MODELO" className="controls-panel">
           <ParameterControls params={params} metrics={metrics} stable={engine.coefficients.stable} onChange={updateParams} onPreset={applyPreset} />
         </Panel>
 
+        <div className="hil-grid">
+          <Panel title="Telemetria do target" eyebrow="02 · STATUS HIL" action={<span className={`hil-mode-pill ${hilStatus.mode}`}>{hilStatus.mode === 'hil' ? 'TARGET' : 'HOST'}</span>}>
+            <HilStatusPanel status={hilStatus} />
+          </Panel>
+          <Panel title="Erro target × referência" eyebrow="03 · VALIDAÇÃO">
+            <ValidationPlot controller={hilController} status={hilStatus} />
+          </Panel>
+        </div>
+
         <div className="two-column">
-          <Panel title="Resposta em frequência" eyebrow="02 · BODE">
+          <Panel title="Resposta em frequência" eyebrow="04 · BODE">
             <BodePlot m={params.m} c={params.c} k={params.k} fs={engine.fs} />
           </Panel>
-          <Panel title="Polos e zero" eyebrow="03 · PLANO S">
+          <Panel title="Polos e zero" eyebrow="05 · PLANO S">
             <PoleZeroPlot m={params.m} c={params.c} k={params.k} />
           </Panel>
         </div>
 
-        <Panel title="Resposta temporal" eyebrow="04 · OSCILOSCÓPIO" action={<span className="live-pill"><i /> AO VIVO</span>}>
+        <Panel title="Resposta temporal" eyebrow="06 · OSCILOSCÓPIO" action={<span className="live-pill"><i /> AO VIVO</span>}>
           <Oscilloscope engine={engine} />
         </Panel>
 
-        <Panel title="Densidade espectral" eyebrow="05 · FFT RADIX-2" action={<span className="bin-pill">2048 AMOSTRAS</span>}>
+        <Panel title="Densidade espectral" eyebrow="07 · FFT RADIX-2" action={<span className="bin-pill">2048 AMOSTRAS</span>}>
           <SpectrumPlot engine={engine} />
         </Panel>
 
-        <Panel title="Excitação da pista" eyebrow="06 · GERADOR DE SINAL" className="signal-panel">
+        <Panel title="Excitação da pista" eyebrow="08 · GERADOR DE SINAL" className="signal-panel">
           <SignalControls params={params} onChange={updateParams} />
         </Panel>
 
         <footer className="app-footer">
           <span>H(s) = (cs + k) / (ms² + cs + k)</span>
           <span>Tustin + pre-warp em ωn</span>
-          <span>React Three Fiber · DSP nativo</span>
+          <span>Web Serial · 921.600 baud · CRC-8</span>
         </footer>
       </section>
     </main>
