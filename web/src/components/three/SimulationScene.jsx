@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import { RollingRoad } from './RollingRoad'
@@ -13,7 +14,9 @@ function Simulation({ engine }) {
       <directionalLight position={[6, 10, -5]} intensity={2.2} color="#dffcff" castShadow shadow-mapSize={[1024, 1024]} />
       <pointLight position={[-4, 3, -4]} intensity={10} color="#1d7c91" />
       <RollingRoad engine={engine} />
-      <Vehicle engine={engine} />
+      <Suspense fallback={null}>
+        <Vehicle engine={engine} />
+      </Suspense>
       <OrbitControls target={[0, 0.7, 1]} enableDamping minDistance={4} maxDistance={16} maxPolarAngle={Math.PI * 0.48} />
     </>
   )

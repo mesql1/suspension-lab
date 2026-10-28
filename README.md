@@ -46,6 +46,7 @@ Nenhum firmware é necessário para usar o site: basta abrir a aplicação e dei
 ## Documentação
 
 - [Matemática e arquitetura da aplicação](docs/DOCUMENTACAO_TECNICA.md)
+- [Guia simples para usuários e estudantes](docs/GUIA_SIMPLES_DA_APLICACAO.md)
 - [Arquitetura HIL e protocolo binário](docs/HIL_PROTOCOLO.md)
 - [Montagem, testes e relatório de validação](docs/HIL_VALIDACAO.md)
 - [Firmware ESP32](firmware/README.md)

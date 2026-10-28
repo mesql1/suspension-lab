@@ -1,8 +1,10 @@
-import { useRef } from 'react'
+import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
+import { useGLTF } from '@react-three/drei'
 
 const HEIGHT_SCALE = 3.2
-const AXLES = { front: -1.35, rear: 1.35 }
+const AXLES = { front: -1.17, rear: 1.03 }
+const MUSTANG_URL = `${import.meta.env.BASE_URL}models/mustang.glb`
 
 function Wheel({ x, z, signal, currentRef }) {
   const ref = useRef()
@@ -14,11 +16,11 @@ function Wheel({ x, z, signal, currentRef }) {
   return (
     <group ref={ref} position={[x, 0.48, z]}>
       <mesh rotation={[0, 0, Math.PI / 2]} castShadow>
-        <cylinderGeometry args={[0.36, 0.36, 0.28, 24]} />
+        <cylinderGeometry args={[0.3, 0.3, 0.26, 24]} />
         <meshStandardMaterial color="#11181d" roughness={0.74} />
       </mesh>
       <mesh rotation={[0, 0, Math.PI / 2]}>
-        <cylinderGeometry args={[0.19, 0.19, 0.3, 16]} />
+        <cylinderGeometry args={[0.16, 0.16, 0.28, 16]} />
         <meshStandardMaterial color="#7b8b92" metalness={0.75} roughness={0.28} />
       </mesh>
     </group>
@@ -27,8 +29,17 @@ function Wheel({ x, z, signal, currentRef }) {
 
 export function Vehicle({ engine }) {
   const body = useRef()
-  const cabin = useRef()
   const currentRef = useRef(engine.current)
+  const { scene } = useGLTF(MUSTANG_URL)
+  const mustang = useMemo(() => {
+    const clone = scene.clone(true)
+    clone.traverse((node) => {
+      if (!node.isMesh) return
+      node.castShadow = true
+      node.receiveShadow = true
+    })
+    return clone
+  }, [scene])
 
   useFrame(() => {
     const current = engine.current
@@ -36,7 +47,6 @@ export function Vehicle({ engine }) {
     if (!body.current) return
     body.current.position.y = 1.08 + current.y * HEIGHT_SCALE
     body.current.rotation.x = -current.pitch * 3
-    if (cabin.current) cabin.current.position.y = 0.34 + Math.sin(engine.time * 1.4) * 0.004
   })
 
   return (
@@ -47,23 +57,10 @@ export function Vehicle({ engine }) {
       <Wheel x={0.82} z={AXLES.rear} signal="xRear" currentRef={currentRef} />
 
       <group ref={body} position={[0, 1.08, 0]}>
-        <mesh castShadow>
-          <boxGeometry args={[1.72, 0.32, 3.45]} />
-          <meshStandardMaterial color="#39c3d0" metalness={0.58} roughness={0.24} />
-        </mesh>
-        <mesh ref={cabin} position={[0, 0.34, 0.22]} castShadow>
-          <boxGeometry args={[1.45, 0.62, 1.78]} />
-          <meshStandardMaterial color="#a7f4f0" metalness={0.25} roughness={0.19} />
-        </mesh>
-        <mesh position={[0, 0.35, -0.69]}>
-          <boxGeometry args={[1.31, 0.48, 0.03]} />
-          <meshStandardMaterial color="#163746" metalness={0.35} roughness={0.12} transparent opacity={0.85} />
-        </mesh>
-        <mesh position={[0, 0.13, -1.77]}>
-          <boxGeometry args={[1.52, 0.14, 0.13]} />
-          <meshStandardMaterial color="#dffcff" emissive="#5ee7f0" emissiveIntensity={0.9} />
-        </mesh>
+        <primitive object={mustang} position={[0, -0.71, 0]} />
       </group>
     </group>
   )
 }
+
+useGLTF.preload(MUSTANG_URL)
