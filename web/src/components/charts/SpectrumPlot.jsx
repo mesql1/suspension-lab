@@ -32,7 +32,7 @@ export function SpectrumPlot({ engine }) {
       ;[-80, -60, -40, -20].forEach((db) => label(ctx, `${db}`, rect.x - 5, yFor(db) + 3, 'right'))
       ;[0, 20, 40, 60, 80, 100].forEach((f) => label(ctx, `${f}`, xFor(f), size.height - 5, f === 0 ? 'left' : f === 100 ? 'right' : 'center'))
       label(ctx, 'dB', rect.x + 3, rect.y + 11, 'left', '#9a9a9a')
-      label(ctx, 'Hz', rect.x + rect.width - 2, rect.y + 11, 'right', '#9a9a9a')
+      label(ctx, 'Hz', rect.x + rect.width - 2, size.height - 18, 'right', '#9a9a9a')
     }
     frame = requestAnimationFrame(draw)
     return () => cancelAnimationFrame(frame)

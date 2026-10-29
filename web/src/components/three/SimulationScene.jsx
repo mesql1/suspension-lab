@@ -1,11 +1,33 @@
-import { Suspense } from 'react'
-import { Canvas } from '@react-three/fiber'
+import { Suspense, useEffect, useRef } from 'react'
+import { Canvas, useThree } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
 import { RollingRoad } from './RollingRoad'
 import { Vehicle } from './Vehicle'
 
+function ResponsiveCamera({ controlsRef }) {
+  const { camera, size } = useThree()
+  useEffect(() => {
+    if (size.width < 600) {
+      camera.position.set(5.8, 3.85, -7)
+      camera.fov = 40
+    } else {
+      camera.position.set(3.55, 2.45, -4.25)
+      camera.fov = 36
+    }
+    camera.lookAt(0, 0.65, 0)
+    camera.updateProjectionMatrix()
+    if (controlsRef.current) {
+      controlsRef.current.target.set(0, 0.65, 0)
+      controlsRef.current.update()
+      controlsRef.current.saveState()
+    }
+  }, [camera, controlsRef, size.width])
+  return null
+}
+
 function Simulation({ engine }) {
+  const controlsRef = useRef(null)
   return (
     <>
       <color attach="background" args={['#090a0b']} />
@@ -16,11 +38,12 @@ function Simulation({ engine }) {
       <directionalLight position={[-5, 4, -1]} intensity={1.15} color="#cfd2d5" />
       <pointLight position={[-3, 3, 4]} intensity={8} color="#ffffff" distance={18} />
       <pointLight position={[3, 2, -4]} intensity={5} color="#d9d9d9" distance={14} />
+      <ResponsiveCamera controlsRef={controlsRef} />
       <RollingRoad engine={engine} />
       <Suspense fallback={null}>
         <Vehicle engine={engine} />
       </Suspense>
-      <OrbitControls target={[0, 0.7, 1]} enableDamping minDistance={4} maxDistance={16} maxPolarAngle={Math.PI * 0.48} />
+      <OrbitControls ref={controlsRef} target={[0, 0.65, 0]} enableDamping minDistance={3.1} maxDistance={13} maxPolarAngle={Math.PI * 0.48} />
     </>
   )
 }
@@ -30,7 +53,7 @@ export function SimulationScene({ engine }) {
     <Canvas
       shadows
       dpr={[1, 1.6]}
-      camera={{ position: [5.5, 3.8, -6.8], fov: 42 }}
+      camera={{ position: [3.55, 2.45, -4.25], fov: 36 }}
       gl={{ antialias: true, powerPreference: 'high-performance' }}
       onCreated={({ gl }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping

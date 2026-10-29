@@ -22,9 +22,9 @@ export function drawGrid(ctx, rect, xDivisions = 8, yDivisions = 4) {
   ctx.restore()
 }
 
-export function label(ctx, text, x, y, align = 'left', color = '#858585') {
+export function label(ctx, text, x, y, align = 'left', color = '#a8a8a8') {
   ctx.fillStyle = color
-  ctx.font = '10px JetBrains Mono, monospace'
+  ctx.font = '11px JetBrains Mono, monospace'
   ctx.textAlign = align
   ctx.fillText(text, x, y)
 }

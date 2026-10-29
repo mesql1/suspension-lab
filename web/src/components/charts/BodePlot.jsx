@@ -3,6 +3,7 @@ import { encontrarCorte, frequenciasLog, respostaEmFrequencia } from '../../dsp/
 import { gerarCoeficientes } from '../../dsp/biquad'
 import { useCanvasSize } from '../../hooks/useCanvasSize'
 import { drawGrid, label, setupCanvas, trace } from './canvas'
+import { formatFixed } from '../../utils/format'
 
 export function BodePlot({ m, c, k, fs }) {
   const [ref, size] = useCanvasSize()
@@ -56,7 +57,6 @@ export function BodePlot({ m, c, k, fs }) {
       const cutoffX = xFor(data.cutoff)
       ctx.fillStyle = '#a8a8a8'
       ctx.beginPath(); ctx.arc(cutoffX, magFor(-3), 3, 0, Math.PI * 2); ctx.fill()
-      label(ctx, `fc ${data.cutoff.toFixed(1)} Hz`, cutoffX - 4, magFor(-3) - 6, 'right', '#a8a8a8')
     }
 
     ;[-60, -40, -20, 0, 20].forEach((v) => label(ctx, `${v}`, pad.left - 6, magFor(v) + 3, 'right'))
@@ -64,7 +64,8 @@ export function BodePlot({ m, c, k, fs }) {
     ;[0.1, 1, 10, 100].forEach((f) => label(ctx, `${f}`, xFor(f), size.height - 5, 'center'))
     label(ctx, 'MAG · dB', magRect.x + 4, magRect.y + 11, 'left', '#9a9a9a')
     label(ctx, 'FASE', phaseRect.x + 4, phaseRect.y + 11, 'left', '#9a9a9a')
-    label(ctx, `fn ${data.fn.toFixed(2)} Hz`, Math.min(resonanceX + 4, size.width - 75), magRect.y + 12, 'left', '#d8d8d8')
+    label(ctx, `fn ${formatFixed(data.fn, 2)} Hz`, magRect.x + 4, magRect.y + 27, 'left', '#d8d8d8')
+    if (data.cutoff) label(ctx, `fc ${formatFixed(data.cutoff, 1)} Hz`, magRect.x + 4, magRect.y + 43, 'left', '#a8a8a8')
   }, [data, ref, size])
 
   return (

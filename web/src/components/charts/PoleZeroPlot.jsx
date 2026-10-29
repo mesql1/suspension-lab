@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { polosZerosContinuos } from '../../dsp/biquad'
 import { useCanvasSize } from '../../hooks/useCanvasSize'
 import { drawGrid, label, setupCanvas } from './canvas'
+import { formatFixed } from '../../utils/format'
 
 export function PoleZeroPlot({ m, c, k }) {
   const [ref, size] = useCanvasSize()
@@ -34,10 +35,10 @@ export function PoleZeroPlot({ m, c, k }) {
       ctx.beginPath(); ctx.arc(xFor(zero.re), yFor(zero.im), 5, 0, Math.PI * 2); ctx.stroke()
     })
     label(ctx, 'Re(s)', rect.x + rect.width, axisY - 5, 'right')
-    label(ctx, 'Im(s)', axisX - 5, rect.y + 9, 'right')
+    label(ctx, 'Im(s)', rect.x + 3, rect.y + 29, 'left')
     label(ctx, `${(-maxRe).toFixed(0)}`, rect.x, axisY + 14, 'left')
     label(ctx, '0', axisX, axisY + 14, 'center')
-    label(ctx, `ζ ${(c / (2 * Math.sqrt(k * m))).toFixed(2)}`, rect.x + 3, rect.y + 12, 'left', '#d8d8d8')
+    label(ctx, `ζ ${formatFixed(c / (2 * Math.sqrt(k * m)), 2)}`, rect.x + 3, rect.y + 12, 'left', '#d8d8d8')
   }, [values, m, c, k, ref, size])
 
   return (
