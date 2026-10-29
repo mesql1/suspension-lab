@@ -12,8 +12,8 @@ function ResponsiveCamera({ controlsRef }) {
       camera.position.set(5.8, 3.85, -7)
       camera.fov = 40
     } else {
-      camera.position.set(3.55, 2.45, -4.25)
-      camera.fov = 36
+      camera.position.set(8.2, 5.2, -9.8)
+      camera.fov = 42
     }
     camera.lookAt(0, 0.65, 0)
     camera.updateProjectionMatrix()
@@ -43,7 +43,7 @@ function Simulation({ engine }) {
       <Suspense fallback={null}>
         <Vehicle engine={engine} />
       </Suspense>
-      <OrbitControls ref={controlsRef} target={[0, 0.65, 0]} enableDamping minDistance={3.1} maxDistance={13} maxPolarAngle={Math.PI * 0.48} />
+      <OrbitControls ref={controlsRef} target={[0, 0.65, 0]} enableDamping minDistance={3.1} maxDistance={20} maxPolarAngle={Math.PI * 0.48} />
     </>
   )
 }
