@@ -1,6 +1,6 @@
 # ThermoSignal DSP 3D
 
-O simulador principal agora está em [web/index.html](web/index.html), um único arquivo-fonte com HTML, CSS e JavaScript. A interface preserva o tema escuro minimalista, a cena 3D fixa e os módulos em abas. Execute com `npm run dev` e publique com `npm run build` (saída em `web/dist`). As bibliotecas externas usam versões fixas por CDN; para uso offline, baixe-as e substitua as URLs do cabeçalho.
+O simulador principal agora está em [web/index.html](web/index.html), um único arquivo-fonte com HTML, CSS e JavaScript. A interface preserva o tema escuro minimalista, a cena 3D fixa e os módulos em abas. Execute com `npm run dev` e publique com `npm run build` (saída em `web/dist`). Three.js, Chart.js, KaTeX e a fonte Inter são empacotados localmente pelo Vite, sem dependência de CDN na versão publicada. O CSS da interface é escrito diretamente no HTML e não exige Tailwind em tempo de execução.
 
 Parâmetros iniciais: Rth = 0,63 °C/W, Cth = 38 J/°C, τ = 23,94 s, ambiente = 25 °C, limite = 68 °C, potência estática = 11 W, potência dinâmica máxima = 190 W, frequência máxima = 3,6 GHz, σ = 2,8 °C, corte = 1,8 Hz, amostragem = 100 Hz. A combinação de carga Jogo e ruído moderado produz falsos gatilhos observáveis na instância sem filtro.
 
