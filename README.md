@@ -1,3 +1,15 @@
+# ThermoSignal DSP 3D
+
+O simulador principal agora está em [web/index.html](web/index.html), um único arquivo-fonte com HTML, CSS e JavaScript. A interface preserva o tema escuro minimalista, a cena 3D fixa e os módulos em abas. Execute com `npm run dev` e publique com `npm run build` (saída em `web/dist`). As bibliotecas externas usam versões fixas por CDN; para uso offline, baixe-as e substitua as URLs do cabeçalho.
+
+Parâmetros iniciais: Rth = 0,63 °C/W, Cth = 38 J/°C, τ = 23,94 s, ambiente = 25 °C, limite = 68 °C, potência estática = 11 W, potência dinâmica máxima = 190 W, frequência máxima = 3,6 GHz, σ = 2,8 °C, corte = 1,8 Hz, amostragem = 100 Hz. A combinação de carga Jogo e ruído moderado produz falsos gatilhos observáveis na instância sem filtro.
+
+A EDO térmica é integrada com solução exponencial por passo fixo. Duas instâncias recebem a mesma carga e o mesmo ruído gaussiano com semente fixa. A segunda passa sua medição por um IIR bilinear de primeira ordem antes do DVFS. A frequência altera a potência dinâmica proporcionalmente a carga × frequência³, fechando a malha. A aba Aprender exibe as equações e três experimentos sugeridos.
+
+## Arquivo legado da suspensão
+
+O material abaixo documenta a implementação anterior, que permanece no repositório como referência histórica e não é carregada pelo novo `index.html`.
+
 # Suspension Lab HIL
 
 Plataforma HIL para demonstrar uma suspensão veicular como filtro mecânico passa-baixas. O navegador gera a pista e renderiza os painéis/3D. Um **ESP32 virtual**, ativo por padrão, executa o mesmo protocolo e o mesmo biquad a 1 kHz sem exigir placa física; o ESP32 real permanece como opção avançada via USB-UART.
