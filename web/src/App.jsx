@@ -160,6 +160,11 @@ export default function App() {
 
           <section className="module-workspace" aria-label="Módulos do laboratório">
             <nav className="module-tabs" role="tablist" aria-label="Escolha um módulo">
+              <span
+                className="module-tab-indicator"
+                aria-hidden="true"
+                style={{ '--active-tab': MODULES.findIndex((module) => module.id === activeModule) }}
+              />
               {MODULES.map((module) => (
                 <button
                   key={module.id}

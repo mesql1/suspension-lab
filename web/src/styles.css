@@ -967,3 +967,68 @@ input[type="range"]::-webkit-slider-thumb { width: 12px; height: 12px; margin-to
   .module-tabs { display: grid; grid-template-columns: 1.25fr repeat(4, 1fr); overflow: hidden; }
   .module-tabs button { min-width: 0; padding: 0 3px; font-size: 7px; }
 }
+
+/* Capsule navigation inspired by the supplied reference. */
+.module-tabs {
+  position: relative;
+  width: auto;
+  min-height: 60px;
+  margin: 12px 12px 0;
+  padding: 6px;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  flex: 0 0 auto;
+  overflow: hidden;
+  border: 1px solid #303030;
+  border-radius: 999px;
+  background: #050505;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035), 0 10px 28px rgba(0,0,0,.22);
+}
+.module-tab-indicator {
+  position: absolute;
+  z-index: 0;
+  top: 6px;
+  bottom: 6px;
+  left: 6px;
+  width: calc((100% - 12px) / 5);
+  border: 1px solid #4a4a4a;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #292929, #202020);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 5px 16px rgba(0,0,0,.3);
+  transform: translateX(calc(var(--active-tab) * 100%));
+  transition: transform .48s cubic-bezier(.22, 1, .36, 1), width .28s ease;
+  will-change: transform;
+}
+.module-tabs button {
+  z-index: 1;
+  min-width: 0;
+  height: 46px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #777;
+  font-size: 8px;
+  letter-spacing: .055em;
+  transition: color .28s ease, transform .28s cubic-bezier(.22, 1, .36, 1);
+}
+.module-tabs button:hover { color: #c8c8c8; background: transparent; }
+.module-tabs button.active { color: #fff; background: transparent; transform: translateY(-1px); }
+.module-tabs button.active::after { display: none; }
+.module-stack { animation: module-in .32s cubic-bezier(.22, 1, .36, 1); }
+@keyframes module-in {
+  from { opacity: 0; transform: translateY(8px) scale(.992); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 560px) {
+  .module-tabs { min-height: 52px; margin: 8px 8px 0; padding: 5px; }
+  .module-tab-indicator { top: 5px; bottom: 5px; left: 5px; width: calc((100% - 10px) / 5); }
+  .module-tabs button { height: 40px; padding: 0 2px; font-size: 6.5px; letter-spacing: .02em; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .module-tab-indicator,
+  .module-tabs button { transition-duration: .01ms; }
+  .module-stack { animation: none; }
+}
