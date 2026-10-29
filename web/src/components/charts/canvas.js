@@ -24,7 +24,7 @@ export function drawGrid(ctx, rect, xDivisions = 8, yDivisions = 4) {
 
 export function label(ctx, text, x, y, align = 'left', color = '#a8a8a8') {
   ctx.fillStyle = color
-  ctx.font = '11px JetBrains Mono, monospace'
+  ctx.font = '500 11px Inter, ui-sans-serif, system-ui, sans-serif'
   ctx.textAlign = align
   ctx.fillText(text, x, y)
 }
