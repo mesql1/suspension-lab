@@ -71,6 +71,11 @@ export default function App() {
   const [params, setParams] = useState(INITIAL_PARAMS)
   const [activePreset, setActivePreset] = useState(null)
   const [activeModule, setActiveModule] = useState('overview')
+  const [displayedModule, setDisplayedModule] = useState('overview')
+  const [transitionPhase, setTransitionPhase] = useState('idle')
+  const [transitionDirection, setTransitionDirection] = useState('forward')
+  const transitionTimerRef = useRef(null)
+  const settleTimerRef = useRef(null)
 
   useEffect(() => {
     void hilController.start()
@@ -88,6 +93,11 @@ export default function App() {
     frame = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(frame)
   }, [engine])
+
+  useEffect(() => () => {
+    clearTimeout(transitionTimerRef.current)
+    clearTimeout(settleTimerRef.current)
+  }, [])
 
   const metrics = useMemo(() => {
     const omega = Math.sqrt(params.k / params.m)
@@ -116,6 +126,25 @@ export default function App() {
     setActivePreset(null)
     updateParams(INITIAL_PARAMS, true)
   }, [updateParams])
+
+  const switchModule = useCallback((nextModule) => {
+    if (nextModule === activeModule) return
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    const exitDuration = reduceMotion ? 90 : 170
+    const enterDuration = reduceMotion ? 140 : 340
+    const currentIndex = MODULES.findIndex((module) => module.id === activeModule)
+    const nextIndex = MODULES.findIndex((module) => module.id === nextModule)
+    clearTimeout(transitionTimerRef.current)
+    clearTimeout(settleTimerRef.current)
+    setTransitionDirection(nextIndex >= currentIndex ? 'forward' : 'backward')
+    setActiveModule(nextModule)
+    setTransitionPhase('exiting')
+    transitionTimerRef.current = setTimeout(() => {
+      setDisplayedModule(nextModule)
+      setTransitionPhase('entering')
+      settleTimerRef.current = setTimeout(() => setTransitionPhase('idle'), enterDuration)
+    }, exitDuration)
+  }, [activeModule])
 
   return (
     <main className="app-shell">
@@ -173,15 +202,15 @@ export default function App() {
                   aria-selected={activeModule === module.id}
                   aria-controls={`module-${module.id}`}
                   className={activeModule === module.id ? 'active' : ''}
-                  onClick={() => setActiveModule(module.id)}
+                  onClick={() => switchModule(module.id)}
                 >
                   {module.label}
                 </button>
               ))}
             </nav>
 
-            <div className="module-scroll" role="tabpanel" id={`module-${activeModule}`}>
-              {activeModule === 'overview' && (
+            <div className={`module-scroll transition-${transitionPhase} ${transitionDirection}`} role="tabpanel" id={`module-${activeModule}`} aria-live="polite">
+              {displayedModule === 'overview' && (
                 <div className="module-stack overview-module">
                   <section className="mode-card">
                     <div className="compact-card-heading">
@@ -208,7 +237,7 @@ export default function App() {
                 </div>
               )}
 
-              {activeModule === 'parameters' && (
+              {displayedModule === 'parameters' && (
                 <div className="module-stack">
                   <Panel title="Parâmetros do sistema" eyebrow="MODELO MECÂNICO" className="controls-panel">
                     <ParameterControls params={params} metrics={metrics} stable={engine.coefficients.stable} activePreset={activePreset} onChange={updateParams} onPreset={applyPreset} onReset={resetParams} />
@@ -219,7 +248,7 @@ export default function App() {
                 </div>
               )}
 
-              {activeModule === 'input' && (
+              {displayedModule === 'input' && (
                 <div className="module-stack">
                   <Panel title="Excitação da pista" eyebrow="ENTRADA DO SISTEMA" className="signal-panel">
                     <SignalControls params={params} onChange={updateParams} />
@@ -227,12 +256,12 @@ export default function App() {
                   <div className="module-help">
                     <span className="eyebrow">FLUXO DO ENSAIO</span>
                     <p>A pista gera <b>x(t)</b>. A suspensão processa essa entrada com os parâmetros m, k e c, produzindo o deslocamento da carroceria <b>y(t)</b>.</p>
-                    <button type="button" onClick={() => setActiveModule('analysis')}>VER RESULTADOS NOS GRÁFICOS →</button>
+                    <button type="button" onClick={() => switchModule('analysis')}>VER RESULTADOS NOS GRÁFICOS →</button>
                   </div>
                 </div>
               )}
 
-              {activeModule === 'analysis' && (
+              {displayedModule === 'analysis' && (
                 <div className="module-stack analysis-module">
                   <Panel title="Resposta em frequência" eyebrow="BODE">
                     <BodePlot m={params.m} c={params.c} k={params.k} fs={engine.fs} />
@@ -249,7 +278,7 @@ export default function App() {
                 </div>
               )}
 
-              {activeModule === 'validation' && (
+              {displayedModule === 'validation' && (
                 <div className="module-stack">
                   <Panel title="Erro do alvo × referência" eyebrow="VALIDAÇÃO HIL">
                     <ValidationPlot controller={hilController} status={hilStatus} />
