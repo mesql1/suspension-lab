@@ -4,6 +4,8 @@ Laboratório educacional de integridade de sinal em trilhas PCB. Preserva o desi
 
 [Abrir aplicação](https://mesql1.github.io/thermosignal/) · [Repositório](https://github.com/mesql1/thermosignal)
 
+**Documentação para estudo e apresentação:** [Guia simples da aplicação](docs/GUIA-DA-APLICACAO.md)
+
 O endereço do repositório permanece `thermosignal`; o produto atual é SI-Wave Laplace. A documentação anterior está em [Legado ThermoSignal](docs/LEGADO-THERMOSIGNAL.md).
 
 ## Representação 3D
