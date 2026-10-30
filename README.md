@@ -2,11 +2,11 @@
 
 Laboratório educacional de integridade de sinal em trilhas PCB. Preserva o design escuro minimalista e organiza o experimento nas abas **Sinal, Olho, Reflexões, Frequência e Laplace**.
 
-[Abrir aplicação](https://mesql1.github.io/thermosignal/) · [Repositório](https://github.com/mesql1/thermosignal)
+[Abrir aplicação atual](https://mesql1.github.io/thermosignal/) · [Abrir ThermoSignal legado](https://mesql1.github.io/thermosignal/legacy/) · [Repositório](https://github.com/mesql1/thermosignal)
 
 **Documentação para estudo e apresentação:** [Guia simples da aplicação](docs/GUIA-DA-APLICACAO.md)
 
-O endereço do repositório permanece `thermosignal`; o produto atual é SI-Wave Laplace. A documentação anterior está em [Legado ThermoSignal](docs/LEGADO-THERMOSIGNAL.md).
+O endereço do repositório permanece `thermosignal`; o produto atual é SI-Wave Laplace. A versão anterior continua publicada em `/legacy/`, gerada a partir do commit estável `c0ddcb6`. A documentação anterior está em [Legado ThermoSignal](docs/LEGADO-THERMOSIGNAL.md).
 
 ## Representação 3D
 
