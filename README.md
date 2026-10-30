@@ -6,6 +6,12 @@ Laboratório educacional de integridade de sinal em trilhas PCB. Preserva o desi
 
 O endereço do repositório permanece `thermosignal`; o produto atual é SI-Wave Laplace. A documentação anterior está em [Legado ThermoSignal](docs/LEGADO-THERMOSIGNAL.md).
 
+## Representação 3D
+
+A área principal inclui uma cena WebGL fixa durante a rolagem no desktop e recolhível no celular. Ela representa o substrato, a trilha de cobre, os planos de referência, a fonte, a carga e o ponto de medição `x`. Arraste para orbitar, use a roda para aproximar, pause a propagação ou restaure a câmera.
+
+A geometria acompanha `w`, `h`, `t`, `x` e a escolha entre microstrip e stripline. Os pulsos incidentes percorrem a trilha no sentido fonte→carga; os refletidos retornam com cor associada à polaridade dominante de `ΓL`. A intensidade visual usa `exp(−αℓ)` em Nyquist. A velocidade da animação é deliberadamente didática: o atraso físico calculado aparece no painel, mas é desacelerado para ser visível. A cena representa propagação temporal e não resolve o campo eletromagnético tridimensional completo.
+
 ## Começar
 
 ```sh
