@@ -4,8 +4,11 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "predev": "node src/si/assemble.mjs",
     "dev": "vite --host 127.0.0.1",
+    "prebuild": "node src/si/assemble.mjs",
     "build": "vite build",
+    "test:si": "node --test src/si/*.test.mjs",
     "test": "vitest run"
   },
   "dependencies": {
